@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* نلغي الوضع الداكن بشكل افتراضي */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: hsl(var(--background)); /* استخدم المتغير */
+  color: hsl(var(--foreground));
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ✅ خذ إعدادات الوضع الفاتح من :root مباشرة */
+:root {
+  --background: 0 0% 100%;         /* = #ffffff */
+  --foreground: 0 0% 9%;           /* = #181818 تقريبًا */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+  --primary: 239 84% 67%;          /* لون بنفسجي شبيه سلة */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 239 84% 67%;
+  --radius: 0.5rem;
+}
+
+/* ❌ نحذف أو نعطل dark mode */
+@media (prefers-color-scheme: light) {
+  /* ما يحتاج شي هنا لأن :root فيها كل شيء */
+}

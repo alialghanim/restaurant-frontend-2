@@ -1,0 +1,13 @@
+{
+  "typescript.preferences.exclude": [
+    ".history/**/*"
+  ],
+  "files.exclude": {
+    ".history": true
+  },
+  "search.exclude": {
+    ".history": true
+  },
+  "typescript.validate.enable": true,
+  "typescript.suggest.paths": true
+}
