@@ -13,6 +13,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function DashboardHomePage() {
   const [userName, setUserName] = useState("User");
@@ -38,11 +39,6 @@ export default function DashboardHomePage() {
 
   return (
     <div className="space-y-8">
-      {/* الترحيب */}
-      <div>
-        <h1 className="text-2xl font-bold">Welcome, {userName} </h1>
-        <p className="text-muted-foreground">Wishing you a successful day!</p>
-      </div>
 
       {/* التبويبات */}
       <PageTabs />
@@ -157,8 +153,8 @@ function QuickNavItem({
 }) {
   return (
 <Link href={href} className="block mb-2">
-      <div className="flex items-center justify-between border rounded-lg p-4 hover:shadow transition bg-white">
-        <div className="flex items-center gap-4">
+      <div className="flex items-start justify-between border rounded-lg p-4 hover:shadow transition bg-white">
+        <div className="flex items-center gap-3">
           <div className="bg-muted p-2 rounded-full text-primary">
             {icon}
           </div>
@@ -177,7 +173,6 @@ function QuickNavItem({
     </Link>
   );
 }
-
 
 // مكون كرت إحصائي
 function StatCard({

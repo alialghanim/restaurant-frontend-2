@@ -195,7 +195,6 @@ const fetchAddress = async (lat: number, lng: number) => {
   }
 };
 
-  
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) return alert("Geolocation not supported");
 

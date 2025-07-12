@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
-import TopNavBar from "@/components/TopNavBar"; // ✅ تأكد أنك استوردت التوب بار
 
 interface User {
   name: string;
@@ -45,8 +44,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-[#f9fafb]">
-      {/* ✅ Top Navigation Bar */}
-      <TopNavBar userName={user?.name} />
 
       {/* ✅ Main Content */}
       <main className="max-w-7xl mx-auto py-10 px-6">{children}</main>

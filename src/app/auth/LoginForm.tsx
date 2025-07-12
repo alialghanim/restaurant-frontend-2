@@ -22,16 +22,25 @@ export default function LoginForm() {
       const res = await api.post("/auth/login", { email, password });
       const accessToken = res.data.access_token;
 
-      if (accessToken) {
-        localStorage.setItem("access_token", accessToken);
+if (accessToken) {
+  localStorage.setItem("access_token", accessToken);
 
-        const userRes = await api.get("/auth/me", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+  const userRes = await api.get("/auth/me", {
+  headers: { Authorization: `Bearer ${accessToken}` },
+});
 
-        localStorage.setItem("user", JSON.stringify(userRes.data));
-        router.push("/admin/dashboard");
-      }
+const user = userRes.data;
+const restaurantId = user?.restaurant?.id;
+
+if (!restaurantId) {
+  throw new Error("No restaurant associated with user.");
+}
+  localStorage.setItem("restaurantId", restaurantId);
+  localStorage.setItem("user", JSON.stringify({ ...user, restaurantId }));
+
+  router.push("/admin/dashboard");
+}
+
     } catch (err: any) {
       localStorage.removeItem("access_token");
       localStorage.removeItem("user");

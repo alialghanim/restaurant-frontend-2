@@ -26,7 +26,7 @@ type Props = {
     logo: string | null;
     storeColor: string;
   }) => void;
-  showError?: boolean;
+  showError?: boolean; // ✅ أضف هذا
 };
 
 const colorOptions = [
@@ -34,7 +34,7 @@ const colorOptions = [
   "#dc2626", "#047857", "#0f766e", "#1e293b", "#ffffff"
 ];
 
-export default function RestaurantIdentity({ initialValue, nameError, onChange }: Props) {
+export default function RestaurantIdentity({ initialValue, nameError, onChange, showError }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [logo, setLogo] = useState<string | null>(null);
@@ -42,14 +42,14 @@ export default function RestaurantIdentity({ initialValue, nameError, onChange }
 
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (initialValue) {
-      setName(initialValue.name || "");
-      setDescription(initialValue.description || "");
-      setLogo(initialValue.logo || null);
-      setStoreColor(initialValue.storeColor || "#006941");
-    }
-  }, [initialValue]);
+ useEffect(() => {
+  if (initialValue && !name && !description && !logo) {
+    setName(initialValue.name || "");
+    setDescription(initialValue.description || "");
+    setLogo(initialValue.logo || null);
+    setStoreColor(initialValue.storeColor || "#006941");
+  }
+}, [initialValue]);
 
   useEffect(() => {
     if (onChange) {
@@ -80,6 +80,32 @@ export default function RestaurantIdentity({ initialValue, nameError, onChange }
     };
   }, [name, description, logo, storeColor]);
 
+  const [nameTakenError, setNameTakenError] = useState("");
+
+useEffect(() => {
+  const timer = setTimeout(async () => {
+    if (name.trim().length < 3) {
+      setNameTakenError(""); // ما نتحقق لو الاسم قصير
+      return;
+    }
+
+    try {
+      const res = await api.get(`/restaurants/check-name/${encodeURIComponent(name.trim())}`);
+      if (res.data.available) {
+        setNameTakenError("");
+      }
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        setNameTakenError("This restaurant name is already taken.");
+      } else {
+        console.error("Failed to check restaurant name", err);
+      }
+    }
+  }, 500);
+
+  return () => clearTimeout(timer);
+}, [name]);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
       {/* Left: Form */}
@@ -93,7 +119,9 @@ export default function RestaurantIdentity({ initialValue, nameError, onChange }
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        {nameError && <p className="text-sm text-red-500">{nameError}</p>}
+{(nameError || nameTakenError) && (
+  <p className="text-sm text-red-500">{nameError || nameTakenError}</p>
+)}
 
         <label className="text-sm font-medium block mt-4 mb-1">
           Restaurant Description <span className="text-muted-foreground text-sm">(Optional)</span>
@@ -139,6 +167,10 @@ export default function RestaurantIdentity({ initialValue, nameError, onChange }
             }}
           />
         </div>
+
+{(showError && !name.trim()) && (
+  <p className="text-sm text-red-500">Restaurant name is required</p>
+)}
 
         <label className="text-sm font-medium block mt-4 mb-2">Store Color</label>
         <div className="flex items-center gap-2 flex-wrap">

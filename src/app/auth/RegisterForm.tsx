@@ -22,6 +22,7 @@ export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ name?: boolean; email?: boolean; phone?: boolean }>({});
+const [fieldMessages, setFieldMessages] = useState<{ name?: string; email?: string; phone?: string }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -32,27 +33,31 @@ export default function RegisterForm() {
   setError("");
   setFieldErrors({});
 
- if (!form.name || !form.email || !form.password || !form.confirmPassword) {
+ const errors: typeof fieldErrors = {};
+
+if (!form.name) errors.name = true;
+if (!form.email) errors.email = true;
+if (!phone) errors.phone = true;
+if (!form.password) setError("Password is required.");
+if (!form.confirmPassword) setError("Please confirm your password.");
+
+if (Object.keys(errors).length > 0) {
+  setFieldErrors(errors);
   setError("Please fill in all required fields.");
   return;
 }
 
-  const isStrongPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(form.password);
-  if (!isStrongPassword) {
-    setError("Password must be at least 8 characters long and include both letters and numbers.");
-    return;
-  }
+const isStrongPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(form.password);
+if (!isStrongPassword) {
+  setError("Password must be at least 8 characters long and include both letters and numbers.");
+  return;
+}
 
-if (!phone) {
-    setFieldErrors((prev) => ({ ...prev, phone: true }));
-    setError("Phone number is required");
-    setIsLoading(false);
-    return;
-  }
-  if (form.password !== form.confirmPassword) {
+if (form.password !== form.confirmPassword) {
   setError("Passwords do not match.");
   return;
 }
+
   setIsLoading(true);
 
  try {
@@ -81,27 +86,44 @@ window.location.href = "/welcome";
   }
 } catch (err: any) {
   const rawMessage = err?.response?.data?.message;
-  const messages = Array.isArray(rawMessage)
-    ? rawMessage.map((msg) => msg.toLowerCase?.())
-    : [rawMessage?.toLowerCase?.() || ""];
 
-  let shown = false;
-  for (const msg of messages) {
-    if (msg.includes("email")) {
-      setFieldErrors((prev) => ({ ...prev, email: true }));
-      shown = true;
-    } else if (msg.includes("phone")) {
-      setFieldErrors((prev) => ({ ...prev, phone: true }));
-      shown = true;
-    } else if (msg.includes("name")) {
-      setFieldErrors((prev) => ({ ...prev, name: true }));
-      shown = true;
+  const newFieldErrors: typeof fieldErrors = {};
+  const newFieldMessages: typeof fieldMessages = {};
+  let fallbackMessage = "";
+
+  if (Array.isArray(rawMessage) && typeof rawMessage[0] === "object") {
+    rawMessage.forEach((msgObj: { field: string; message: string }) => {
+      if (msgObj.field in fieldErrors) {
+        newFieldErrors[msgObj.field as keyof typeof fieldErrors] = true;
+        newFieldMessages[msgObj.field as keyof typeof fieldMessages] = msgObj.message;
+      } else {
+        fallbackMessage = msgObj.message;
+      }
+    });
+  } else {
+    const messages = Array.isArray(rawMessage)
+      ? rawMessage.map((msg) => typeof msg === "string" ? msg.toLowerCase() : "")
+      : [typeof rawMessage === "string" ? rawMessage.toLowerCase() : ""];
+
+    for (const msg of messages) {
+      if (msg.includes("email")) {
+        newFieldErrors.email = true;
+        newFieldMessages.email = "Email is already in use";
+      } else if (msg.includes("phone")) {
+        newFieldErrors.phone = true;
+        newFieldMessages.phone = "Phone number is already in use";
+      } else if (msg.includes("name")) {
+        newFieldErrors.name = true;
+        newFieldMessages.name = "Name is already in use";
+      } else {
+        fallbackMessage = msg;
+      }
     }
   }
 
-  if (!shown && messages[0]) {
-    setError(messages[0]);
-  }
+  setFieldErrors(newFieldErrors);
+  setFieldMessages(newFieldMessages);
+  if (fallbackMessage) setError(fallbackMessage);
 } finally {
   setIsLoading(false);
 }
@@ -109,41 +131,51 @@ window.location.href = "/welcome";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto w-full">
-      {error && <div className="p-2 bg-red-500 text-white text-center rounded">{error}</div>}
+    <Input
+  name="name"
+  placeholder="Full Name"
+  onChange={(e) => {
+    handleChange(e);
+    setFieldErrors((prev) => ({ ...prev, name: false }));
+    setFieldMessages((prev) => ({ ...prev, name: "" }));
+  }}
+  value={form.name}
+  required
+  className={fieldErrors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
+/>
+{fieldMessages.name && (
+  <p className="text-sm text-red-500 mt-1">{fieldMessages.name}</p>
+)}
 
-      <Input
-        name="name"
-        placeholder="Full Name"
-        onChange={handleChange}
-        value={form.name}
-        required
-        className={fieldErrors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
-      />
-
-     <div className={fieldErrors.phone ? "border border-red-500 p-1 rounded-md" : ""}>
+   <div className={fieldErrors.phone ? "border border-red-500 p-1 rounded-md" : ""}>
   <PhoneInput
     value={phone}
     onChange={(val) => {
       setPhone(val);
       setFieldErrors((prev) => ({ ...prev, phone: false }));
+      setFieldMessages((prev) => ({ ...prev, phone: "" }));
     }}
   />
 </div>
-{fieldErrors.phone && !error && (
-  <p className="text-sm text-red-500 mt-1">Phone number is already in use</p>
+{fieldMessages.phone && (
+  <p className="text-sm text-red-500 mt-1">{fieldMessages.phone}</p>
 )}
 
-     <Input
+   <Input
   name="email"
   type="email"
   placeholder="Email Address"
-  onChange={handleChange}
+  onChange={(e) => {
+    handleChange(e);
+    setFieldErrors((prev) => ({ ...prev, email: false }));
+    setFieldMessages((prev) => ({ ...prev, email: "" }));
+  }}
   value={form.email}
   required
   className={fieldErrors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
 />
-{fieldErrors.email && (
-  <p className="text-sm text-red-500 mt-1">Email is already in use</p>
+{fieldMessages.email && (
+  <p className="text-sm text-red-500 mt-1">{fieldMessages.email}</p>
 )}
 
       <div>

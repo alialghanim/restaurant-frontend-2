@@ -69,7 +69,7 @@ const [restaurantLocation, setRestaurantLocation] = useState<{
   const [logo, setLogo] = useState<string | null>(null);
 const [domainName, setDomainName] = useState("");
 const [useAccountNumber, setUseAccountNumber] = useState(false);
-const [customPhone, setCustomPhone] = useState("");
+const [contactNumber, setcontactNumber] = useState("");
 const [accountPhone, setAccountPhone] = useState("");
 const router = useRouter();
 const params = useParams();
@@ -82,9 +82,9 @@ const [isRestaurantReady, setIsRestaurantReady] = useState(false);
 const restaurantId = params?.restaurantId;
 
 const handleContactChange = useCallback(
-  ({ useAccountNumber, customPhone }: { useAccountNumber: boolean; customPhone: string }) => {
+  ({ useAccountNumber, contactNumber }: { useAccountNumber: boolean; contactNumber: string }) => {
     setUseAccountNumber(useAccountNumber);
-    setCustomPhone(customPhone);
+    setcontactNumber(contactNumber);
   },
   []
 );
@@ -112,12 +112,18 @@ const fetchRestaurantData = async () => {
     try {
       const res = await api.get(`/restaurants/me`);
       restaurantData = res.data;
+      
     } catch (err: any) {
       if (err.response?.status === 404) {
         console.log("No restaurant found. Creating new one...");
 
         const createRes = await api.post("/restaurants");
         restaurantData = createRes.data;
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+localStorage.setItem("user", JSON.stringify({
+  ...storedUser,
+  restaurantId: restaurantData.id,
+}));
       } else {
         throw err;
       }
@@ -130,7 +136,7 @@ const fetchRestaurantData = async () => {
     setStoreColor(restaurantData.storeColor || "#006941");
     setDomainName(restaurantData.domainName || "");
     setDomainNameFromAPI(restaurantData.domainName || "");
-    setCustomPhone(restaurantData.customPhone || "");
+    setcontactNumber(restaurantData.contactNumber || "");
     setUseAccountNumber(restaurantData.useAccountNumber ?? false);
     setRestaurantLocation(restaurantData.restaurantLocation || null);
     setIsRestaurantReady(true);
@@ -153,7 +159,7 @@ useEffect(() => {
 
 const stepsCompleted = [
   restaurantName,
-  useAccountNumber || customPhone,
+  useAccountNumber || contactNumber,
   domainName,
 restaurantLocation,
 ].filter(Boolean).length;
@@ -162,7 +168,7 @@ const totalSteps = 4;
 const progressPercentage = (stepsCompleted / totalSteps) * 100;
 
 const isIdentityComplete = !!restaurantName;
-const isSupportComplete = useAccountNumber || !!customPhone;
+const isSupportComplete = useAccountNumber || !!contactNumber;
 const isDomainComplete = isDomainValid;
 const [isLocationComplete, setIsLocationComplete] = useState(false);
 const [isSaving, setIsSaving] = useState(false);
@@ -171,7 +177,43 @@ const isDomainAlreadySet = !!domainNameFromAPI && domainNameFromAPI === domainNa
 const [domainNameInput, setDomainNameInput] = useState(domainName);
 
 const isValid = () => {
-  return true;
+  let valid = true;
+
+  if (!restaurantName.trim()) {
+    setNameError("Restaurant name is required.");
+    valid = false;
+  } else {
+    setNameError("");
+  }
+
+  if (!useAccountNumber && !contactNumber.trim()) {
+    setShowPhoneError(true);
+    valid = false;
+  } else {
+    setShowPhoneError(false);
+  }
+
+  if (!domainNameInput.trim()) {
+    setShowDomainError(true);
+    valid = false;
+  } else {
+    setShowDomainError(false);
+  }
+
+  if (
+    !restaurantLocation ||
+    !restaurantLocation.address1?.trim() ||
+    !restaurantLocation.city?.trim() ||
+    !restaurantLocation.country?.trim() ||
+    !restaurantLocation.postcode?.trim()
+  ) {
+    setShowLocationError(true);
+    valid = false;
+  } else {
+    setShowLocationError(false);
+  }
+
+  return valid;
 };
 
 useEffect(() => {
@@ -198,10 +240,10 @@ useEffect(() => {
     useEffect(() => {
   const supportData = {
     useAccountNumber,
-    customPhone,
+    contactNumber,
   };
   localStorage.setItem("restaurant_support", JSON.stringify(supportData));
-}, [useAccountNumber, customPhone]);
+}, [useAccountNumber, contactNumber]);
 
 useEffect(() => {
   if (domainNameInput) {
@@ -297,21 +339,23 @@ return isRestaurantReady ? (
   }
   icon={<Store className="w-5 h-5 text-primary" />}
 >
-  <RestaurantIdentity
-    initialValue={{
+<RestaurantIdentity
+  initialValue={
+    isRestaurantReady ? {
       name: restaurantName,
       description: restaurantDescription,
       logo,
       storeColor,
-    }}
-    nameError={nameError}
-    onChange={({ name, description, logo, storeColor }) => {
-      setRestaurantName(name);
-      setRestaurantDescription(description);
-      setLogo(logo);
-      setStoreColor(storeColor);
-    }}
-  />
+    } : undefined
+  }
+  nameError={nameError}
+  onChange={({ name, description, logo, storeColor }) => {
+    setRestaurantName(name);
+    setRestaurantDescription(description);
+    setLogo(logo);
+    setStoreColor(storeColor);
+  }}
+/>
 </Section>
 
 <Section
@@ -328,7 +372,7 @@ return isRestaurantReady ? (
   icon={<Phone className="w-5 h-5 text-primary" />}
 >
   <RestaurantContact
-    initialValue={{ useAccountNumber, customPhone }}
+    initialValue={{ useAccountNumber, contactNumber }}
     accountPhone={accountPhone}
     onChange={handleContactChange}
     showError={showPhoneError}
@@ -386,7 +430,7 @@ return isRestaurantReady ? (
   onClick={async () => {
     if (!isValid()) return;
 
-    if (!useAccountNumber && !customPhone.trim()) {
+    if (!useAccountNumber && !contactNumber.trim()) {
   setShowPhoneError(true);
   return;
 }
@@ -420,9 +464,15 @@ console.log("Sending data:", {
   logo,
   domainName,
   useAccountNumber,
-  customPhone,
+  contactNumber,
   restaurantLocation,
 });
+
+const nameAvailable = await api.get(`/restaurants/check-name/${encodeURIComponent(restaurantName)}`);
+if (nameAvailable.data.taken) {
+  setNameError("This restaurant name is already taken.");
+  return;
+}
 
      // 1. الهوية
 await api.patch("/restaurants/me/identity", {
@@ -435,11 +485,11 @@ await api.patch("/restaurants/me/identity", {
 // 2. التواصل
 await api.patch("/restaurants/me/contact", {
   useAccountNumber,
-  customPhone,
+  contactNumber,
 });
 
 // 3. الدومين (فقط لو لم يتم حفظه من قبل)
-if (domainName) {
+if (domainNameInput) {
   try {
     await api.patch("/restaurants/me/domain", {
   domainName: domainNameInput,

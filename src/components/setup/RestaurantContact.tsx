@@ -6,26 +6,28 @@ import { Button } from "@/components/ui/button";
 import api from "@/lib/axios";
 import PhoneInput from "@/components/PhoneInput";
 import { useRef } from "react";
+
 export default function RestaurantContact({
   initialValue,
   accountPhone,
   onChange,
+  showError, // ✅ هذا موجود بس مو مستخدم
 }: {
   initialValue?: {
     useAccountNumber: boolean;
-    customPhone: string;
+    contactNumber: string;
   };
   accountPhone: string;
-  onChange?: (data: { useAccountNumber: boolean; customPhone: string }) => void;
+  onChange?: (data: { useAccountNumber: boolean; contactNumber: string }) => void;
   showError?: boolean;
 }) {
   const [useAccountNumber, setUseAccountNumber] = useState(true);
-  const [customPhone, setCustomPhone] = useState("");
+  const [contactNumber, setcontactNumber] = useState("");
 
   useEffect(() => {
   if (initialValue) {
     setUseAccountNumber(initialValue.useAccountNumber ?? true);
-    setCustomPhone(initialValue.customPhone ?? "");
+    setcontactNumber(initialValue.contactNumber ?? "");
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []); // ← مهم جدًا نخليها فاضية عشان ما تشتغل كل ما تغير initialValue
@@ -38,8 +40,8 @@ useEffect(() => {
     return; // لا تشغّلي onChange أول مرة
   }
 
-  onChange?.({ useAccountNumber, customPhone });
-}, [useAccountNumber, customPhone]);
+  onChange?.({ useAccountNumber, contactNumber });
+}, [useAccountNumber, contactNumber]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -66,9 +68,13 @@ Use the same number registered in your account (<strong>{accountPhone}</strong>)
         {!useAccountNumber && (
           <div className="space-y-2">
             <PhoneInput
-              value={customPhone ?? ""}
-              onChange={(val) => setCustomPhone(val)}
+              value={contactNumber ?? ""}
+              onChange={(val) => setcontactNumber(val)}
             />
+
+{showError && !contactNumber.trim() && (
+  <p className="text-sm text-red-500">Phone number is required</p>
+)}
 
             <Button
               className="bg-green-100 text-green-700 hover:bg-green-200"
@@ -90,7 +96,7 @@ Use the same number registered in your account (<strong>{accountPhone}</strong>)
             <div className="flex-1 border-b pb-1">
               <p className="text-xs text-gray-400">Phone</p>
               <p className="text-sm font-medium text-black">
-                {useAccountNumber ? accountPhone : customPhone || "N/A"}
+                {useAccountNumber ? accountPhone : contactNumber || "N/A"}
               </p>
             </div>
           </div>

@@ -1,172 +1,105 @@
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import api from "@/lib/axios";
-import toast from "react-hot-toast";
-import { NewItem, Category } from "@/types/restaurant";
+"use client";
+import { useState } from "react";
 
-interface AddItemModalProps {
-  show: boolean;
-  newItem: NewItem;
-  categories: Category[];
-  restaurantId: string;
-  onNewItemChange: (item: NewItem) => void;
-  onClose: () => void;
-  onAdd: () => void;
-  onFetchData: () => void;
-}
+export default function AddItemModal({ onAdd, onClose }: any) {
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [image, setImage] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unlimited, setUnlimited] = useState(false);
 
-export function AddItemModal({
-  show,
-  newItem,
-  categories,
-  restaurantId,
-  onNewItemChange,
-  onClose,
-  onAdd,
-  onFetchData,
-}: AddItemModalProps) {
-  if (!show) return null;
-
-  const handleCategoryChange = async (value: string) => {
-    if (value === "add-new") {
-      const name = prompt("Enter new category name:");
-      if (name) {
-        try {
-          const res = await api.post(`/restaurants/${restaurantId}/categories`, { name });
-          await onFetchData();
-          onNewItemChange({ ...newItem, categoryId: res.data.id });
-          toast.success("Category added");
-        } catch (err) {
-          console.error(err);
-          toast.error("Failed to add category");
-        }
-      }
-    } else {
-      onNewItemChange({ ...newItem, categoryId: value });
+  const handleSubmit = () => {
+    if (!name || !price) {
+      alert("Name and Price are required");
+      return;
     }
+
+    onAdd({
+      name,
+      price: parseFloat(price),
+      description,
+      image,
+      quantity: unlimited ? "unlimited" : quantity,
+    });
+
+    // reset form
+    setName("");
+    setPrice("");
+    setDescription("");
+    setImage("");
+    setQuantity("");
+    setUnlimited(false);
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card p-6 rounded-lg shadow-lg w-full max-w-md border border-border max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Add New Item</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-          >
-            <X className="w-4 h-4" />
-          </Button>
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded w-full max-w-md space-y-4">
+        <h2 className="text-xl font-semibold">Add New Item</h2>
+
+        <input
+          type="text"
+          placeholder="Item name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full border p-2 rounded"
+          required
+        />
+
+        <input
+          type="number"
+          placeholder="Price"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          className="w-full border p-2 rounded"
+          required
+        />
+
+        <input
+          type="text"
+          placeholder="Image URL"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          className="w-full border p-2 rounded"
+        />
+
+        <textarea
+          placeholder="Description (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full border p-2 rounded"
+        />
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={unlimited}
+            onChange={(e) => setUnlimited(e.target.checked)}
+          />
+          <span>Unlimited Quantity</span>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Item Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const previewUrl = URL.createObjectURL(file);
-                  onNewItemChange({
-                    ...newItem,
-                    imageUrl: previewUrl,
-                    file,
-                  });
-                }
-              }}
-              className="w-full bg-background p-3 rounded border border-border"
-            />
-            
-            {newItem.imageUrl && (
-              <img
-                src={newItem.imageUrl}
-                alt="Preview"
-                className="mt-4 rounded w-full h-40 object-cover"
-              />
-            )}
-          </div>
+        {!unlimited && (
+          <input
+            type="number"
+            placeholder="Quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
+        )}
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Item Name</label>
-            <input
-              type="text"
-              className="w-full bg-background p-3 rounded border border-border"
-              value={newItem.name}
-              onChange={(e) => onNewItemChange({ ...newItem, name: e.target.value })}
-              placeholder="Enter item name"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Category</label>
-            <select
-              className="w-full bg-background p-3 rounded border border-border"
-              value={newItem.categoryId}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              required
-            >
-              <option value="">Select a category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-              <option value="add-new">➕ Add New Category</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Price</label>
-            <input
-              type="number"
-              step="1"
-              min="0"
-              className="w-full bg-background p-3 rounded border border-border"
-              value={newItem.price}
-              onChange={(e) =>
-                onNewItemChange({
-                  ...newItem,
-                  price: e.target.valueAsNumber || 0,
-                })
-              }
-              placeholder="0.00"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Description (Optional)
-            </label>
-            <textarea
-              className="w-full bg-background p-3 rounded border border-border"
-              value={newItem.description}
-              onChange={(e) => onNewItemChange({ ...newItem, description: e.target.value })}
-              placeholder="Enter item description"
-              rows={3}
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={onAdd}
-              disabled={!newItem.name.trim() || !newItem.categoryId}
-              className="flex-1"
-            >
-              Add Item
-            </Button>
-          </div>
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 border rounded">
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Add Item
+          </button>
         </div>
       </div>
     </div>

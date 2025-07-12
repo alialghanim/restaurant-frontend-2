@@ -46,7 +46,7 @@ export default function RestaurantDomain({
 
   // ✅ التحقق من توفر الدومين
   const checkDomainAvailability = async (domain: string) => {
-  if (!domain) return setDomainAvailable(null);
+if (!domain || domain.length < 3) return setDomainAvailable(null);
   setChecking(true);
 
   try {
@@ -72,17 +72,21 @@ export default function RestaurantDomain({
       </p>
 
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground text-sm">yourapp.com/</span>
-        <Input
-          placeholder="your-restaurant"
-          className="max-w-xs"
-          value={domain}
-          onChange={(e) => {
-            const cleaned = e.target.value.replace(/[^a-zA-Z0-9-_]/g, "");
-            setDomain(cleaned);
-          }}
-        />
-      </div>
+  <span className="text-muted-foreground text-sm">yourapp.com/</span>
+  <Input
+    placeholder="your-restaurant"
+    className="max-w-xs"
+    value={domain}
+    onChange={(e) => {
+      const cleaned = e.target.value.replace(/[^a-zA-Z0-9-_]/g, "");
+      setDomain(cleaned);
+    }}
+  />
+</div>
+
+{showError && !domain.trim() && (
+  <p className="text-sm text-red-500">Domain name is required</p>
+)}
 
       {domain && (
         <p className="text-sm mt-1">

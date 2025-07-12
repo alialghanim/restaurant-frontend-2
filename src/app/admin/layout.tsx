@@ -1,11 +1,10 @@
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import TopNavBar from "@/components/TopNavBar";
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      {children}
+      <TopNavBar />
+      <main>{children}</main>
     </div>
   );
 }
