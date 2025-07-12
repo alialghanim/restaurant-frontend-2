@@ -1,1 +1,29 @@
 🔁 Auto Git Push Running...
+[main 1849c5a] 📝 تحديث تلقائي - 2025-07-12 11:58:36
+ 44 files changed, 2719 insertions(+), 499 deletions(-)
+ create mode 100644 auto-push.log
+ create mode 100644 public/icons/applepay.svg
+ create mode 100644 public/icons/icons-apple-pay.svg
+ create mode 100644 public/icons/mada.svg
+ create mode 100644 public/icons/mastercard.svg
+ create mode 100644 public/icons/visa.svg
+ create mode 100644 src/app/admin/channels/page.tsx
+ create mode 100644 src/app/admin/marketing/page.tsx
+ create mode 100644 src/app/admin/menu/[itemId]/options/page.tsx
+ create mode 100644 src/app/admin/menu/page.tsx
+ create mode 100644 src/app/admin/orders/page.tsx
+ create mode 100644 src/app/admin/payments/PurchaseInvoices.tsx
+ delete mode 100644 src/app/restaurants/view/[restaurantId]/page.tsx
+ create mode 100644 src/components/BillingSettingsSection.tsx
+ create mode 100644 src/components/restaurant-editor/modals/BankAccountModal.tsx
+ create mode 100644 src/components/restaurant-editor/modals/BillingEmailModal.tsx
+ create mode 100644 src/components/restaurant-editor/modals/CompanyAddressModal.tsx
+ create mode 100644 src/components/restaurant-editor/modals/CreditCardMethodModal.tsx
+ create mode 100644 src/components/restaurant-editor/modals/DefaultPaymentMethodModal.tsx
+ create mode 100644 src/components/ui/alert.tsx
+ create mode 100644 src/components/ui/badge.tsx
+ create mode 100644 src/components/ui/dialog.tsx
+ create mode 100644 src/components/ui/select.tsx
+To https://github.com/alialghanim/restaurant-frontend-2.git
+   3f6e04b..1849c5a  main -> main
+✅ Changes pushed at Sat Jul 12 11:58:38 +03 2025
