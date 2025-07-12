@@ -37,3 +37,11 @@ To https://github.com/alialghanim/restaurant-frontend-2.git
 To https://github.com/alialghanim/restaurant-frontend-2.git
    9ffacf6..f204a3c  main -> main
 ✅ Changes pushed at Sat Jul 12 12:08:41 +03 2025
+[main 29d6fc4] 📝 تحديث تلقائي - 2025-07-12 12:13:41
+ 3 files changed, 30 insertions(+)
+ rename auto-push.log => Library/auto-push.log (88%)
+ rename auto-push.sh => Library/auto-push.sh (100%)
+ create mode 100644 Library/plist
+To https://github.com/alialghanim/restaurant-frontend-2.git
+   f204a3c..29d6fc4  main -> main
+✅ Changes pushed at Sat Jul 12 12:13:42 +03 2025
